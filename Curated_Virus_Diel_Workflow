@@ -1,0 +1,731 @@
+---
+title: "Diel Virus Analysis Workflow"
+author: "Ethan Cissell"
+date: "09/03/2022"
+---
+
+#This is a workflow used in the Diel Virus paper to analyze the combined DNA and RNA viral data.
+#This uses the reads and MAG data generated in the general Diel pub, and uses the QC steps in that workflow. See the DNA and RNA workflows for QC steps and MAG curation.
+
+#Start with QC reads, MEGAHIT assembly of DNA reads, and MAGS
+######THIS PHAGE EXTRACTION FOLLOWS THE PREVIOUSLY BENCHMARKED PROTOCOLS (Sullivan lab) AS CITED IN THE MANUSCRIPT
+#RUN VIRSORTER PASS 1 ON DNA
+```r
+virsorter run --keep-original-seq -i MEGAHIT/D1/simple_final_contigs.fa -w VIRSORTER2/DIEL/D1/ --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 25 all &&
+virsorter run --keep-original-seq -i MEGAHIT/D2/simple_final_contigs.fa -w VIRSORTER2/DIEL/D2/ --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 25 all &&
+virsorter run --keep-original-seq -i MEGAHIT/D3/simple_final_contigs.fa -w VIRSORTER2/DIEL/D3/ --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 25 all &&
+virsorter run --keep-original-seq -i MEGAHIT/D4/simple_final_contigs.fa -w VIRSORTER2/DIEL/D4/ --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 25 all
+```
+#RUN CHECKV ON DNA
+```r
+checkv end_to_end VIRSORTER2/DIEL/D1/final-viral-combined.fa VIRSORTER2/DIEL/D1/checkv -t 28 -d checkv-db-v1.0 &&
+checkv end_to_end VIRSORTER2/DIEL/D2/final-viral-combined.fa VIRSORTER2/DIEL/D2/checkv -t 28 -d checkv-db-v1.0 &&
+checkv end_to_end VIRSORTER2/DIEL/D3/final-viral-combined.fa VIRSORTER2/DIEL/D3/checkv -t 28 -d checkv-db-v1.0 &&
+checkv end_to_end VIRSORTER2/DIEL/D4/final-viral-combined.fa VIRSORTER2/DIEL/D4/checkv -t 28 -d checkv-db-v1.0
+```
+```r
+cat VIRSORTER2/DIEL/D1/checkv/proviruses.fna VIRSORTER2/DIEL/D1/checkv/viruses.fna > VIRSORTER2/DIEL/D1/checkv/combined.fna &&
+cat VIRSORTER2/DIEL/D2/checkv/proviruses.fna VIRSORTER2/DIEL/D2/checkv/viruses.fna > VIRSORTER2/DIEL/D2/checkv/combined.fna &&
+cat VIRSORTER2/DIEL/D3/checkv/proviruses.fna VIRSORTER2/DIEL/D3/checkv/viruses.fna > VIRSORTER2/DIEL/D3/checkv/combined.fna &&
+cat VIRSORTER2/DIEL/D4/checkv/proviruses.fna VIRSORTER2/DIEL/D4/checkv/viruses.fna > VIRSORTER2/DIEL/D4/checkv/combined.fna
+```
+
+#RUN VIRSORTER TO PREP FOR DRAM ON DNA
+```r
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D1/checkv/combined.fna -w VIRSORTER2/DIEL/D1/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D2/checkv/combined.fna -w VIRSORTER2/DIEL/D2/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D3/checkv/combined.fna -w VIRSORTER2/DIEL/D3/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D4/checkv/combined.fna -w VIRSORTER2/DIEL/D4/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all
+```
+
+```r
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D1/checkv/combined.fna -w VIRSORTER2/DIEL/D1/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D2/checkv/combined.fna -w VIRSORTER2/DIEL/D2/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D3/checkv/combined.fna -w VIRSORTER2/DIEL/D3/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D4/checkv/combined.fna -w VIRSORTER2/DIEL/D4/vs_pass2 --include-groups dsDNAphage,ssDNA --min-length 2500 --min-score 0.5 -j 28 all
+```
+#RUN DRAM ON DNA
+```r
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D1/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D1/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D1/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D2/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D2/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D2/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D3/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D3/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D3/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D4/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D4/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D4/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000
+```
+#DISTILL DRAM FROM DNA
+```r
+DRAM-v.py distill -i VIRSORTER2/DIEL/D1/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D1/DRAMV/DISTILL &&
+DRAM-v.py distill -i VIRSORTER2/DIEL/D2/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D2/DRAMV/DISTILL &&
+DRAM-v.py distill -i VIRSORTER2/DIEL/D3/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D3/DRAMV/DISTILL &&
+DRAM-v.py distill -i VIRSORTER2/DIEL/D4/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D4/DRAMV/DISTILL &&
+```
+
+#NOW ASSEMBLE THE RNA AND PREPARE TO DO SIMILAR IDENTIFICATION
+
+#RNA ASSEMBLY WITH RNASPADES
+
+#Assess RNA Assembly quality using Quast
+quast -o RNASPADES/D1_RNA_Quast -t 32 -m 2500 RNASPADES/D1_simple_transcripts.fasta &&
+quast -o RNASPADES/D2_RNA_Quast -t 32 -m 2500 RNASPADES/D2_simple_transcripts.fasta &&
+quast -o RNASPADES/D3_RNA_Quast -t 32 -m 2500 RNASPADES/D3_simple_transcripts.fasta &&
+quast -o RNASPADES/D4_RNA_Quast -t 32 -m 2500 RNASPADES/D4_simple_transcripts.fasta
+
+#SIMPLIFY DEFLINES FROM RNA ASSEMBLY
+```r
+sed 's/NODE/D1/g' Diel_rnaSpades/D1/transcripts.fasta > Diel_rnaSpades/D1/simple_transcripts.fasta
+sed 's/NODE/D2/g' Diel_rnaSpades/D2/transcripts.fasta > Diel_rnaSpades/D2/simple_transcripts.fasta
+sed 's/NODE/D3/g' Diel_rnaSpades/D3/transcripts.fasta > Diel_rnaSpades/D3/simple_transcripts.fasta
+sed 's/NODE/D4/g' Diel_rnaSpades/D4/transcripts.fasta > Diel_rnaSpades/D4/simple_transcripts.fasta
+```
+#RUN VIRSORTER PASS 1 ON RNA
+```r
+virsorter run --keep-original-seq -i RNASPADES/D1_simple_transcripts.fasta -w RNASPADES/D1/VIRSORTER/vs_pass1/ --include-groups RNA --min-length 2500 --min-score 0.5 -j 25 all
+virsorter run --keep-original-seq -i RNASPADES/D2_simple_transcripts.fasta -w RNASPADES/D2/VIRSORTER/vs_pass1/ --include-groups RNA --min-length 2500 --min-score 0.5 -j 25 all
+virsorter run --keep-original-seq -i RNASPADES/D3_simple_transcripts.fasta -w RNASPADES/D3/VIRSORTER/vs_pass1/ --include-groups RNA --min-length 2500 --min-score 0.5 -j 25 all
+virsorter run --keep-original-seq -i RNASPADES/D4_simple_transcripts.fasta -w RNASPADES/D4/VIRSORTER/vs_pass1/ --include-groups RNA --min-length 2500 --min-score 0.5 -j 25 all
+```
+#RUN CHECKV ON RNA
+```r
+checkv end_to_end RNASPADES/D1/VIRSORTER/vs_pass1/final-viral-combined.fa RNASPADES/D1/checkv -t 28 -d checkv-db-v1.0 &&
+checkv end_to_end RNASPADES/D2/VIRSORTER/vs_pass1/final-viral-combined.fa RNASPADES/D2/checkv -t 28 -d checkv-db-v1.0 &&
+checkv end_to_end RNASPADES/D3/VIRSORTER/vs_pass1/final-viral-combined.fa RNASPADES/D3/checkv -t 28 -d checkv-db-v1.0 &&
+checkv end_to_end RNASPADES/D4/VIRSORTER/vs_pass1/final-viral-combined.fa RNASPADES/D4/checkv -t 28 -d checkv-db-v1.0
+```
+```r
+cat RNASPADES/D1/checkv/proviruses.fna RNASPADES/D1/checkv/viruses.fna > RNASPADES/D1/checkv/combined.fna &&
+cat RNASPADES/D2/checkv/proviruses.fna RNASPADES/D2/checkv/viruses.fna > RNASPADES/D2/checkv/combined.fna &&
+cat RNASPADES/D3/checkv/proviruses.fna RNASPADES/D3/checkv/viruses.fna > RNASPADES/D3/checkv/combined.fna &&
+cat RNASPADES/D4/checkv/proviruses.fna RNASPADES/D4/checkv/viruses.fna > RNASPADES/D4/checkv/combined.fna
+```
+
+#RUN VIRSORTER TO PREP FOR DRAM ON RNA
+```r
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i RNASPADES/D1/checkv/combined.fna -w RNASPADES/D1/VIRSORTER/vs_pass2 --include-groups RNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i RNASPADES/D2/checkv/combined.fna -w RNASPADES/D2/VIRSORTER/vs_pass2 --include-groups RNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i RNASPADES/D3/checkv/combined.fna -w RNASPADES/D3/VIRSORTER/vs_pass2 --include-groups RNA --min-length 2500 --min-score 0.5 -j 28 all &&
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i RNASPADES/D4/checkv/combined.fna -w RNASPADES/D4/VIRSORTER/vs_pass2 --include-groups RNA --min-length 2500 --min-score 0.5 -j 28 all
+```
+
+#RUN DRAM ON RNA
+```r
+DRAM-v.py annotate -i RNASPADES/D1/VIRSORTER/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v RNASPADES/D1/VIRSORTER/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o RNASPADES/D1/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+DRAM-v.py annotate -i RNASPADES/D2/VIRSORTER/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v RNASPADES/D2/VIRSORTER/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o RNASPADES/D2/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+DRAM-v.py annotate -i RNASPADES/D3/VIRSORTER/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v RNASPADES/D3/VIRSORTER/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o RNASPADES/D3/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+DRAM-v.py annotate -i RNASPADES/D4/VIRSORTER/vs_pass2/for-dramv/final-viral-combined-for-dramv.fa -v RNASPADES/D4/VIRSORTER/vs_pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o RNASPADES/D4/DRAMV --skip_trnascan --threads 28 --min_contig_size 1000 &&
+```
+#DISTILL DRAM FROM RNA
+```r
+DRAM-v.py distill -i RNASPADES/D1/DRAMV/annotations.tsv -o RNASPADES/D1/DRAMV/DISTILL &&
+DRAM-v.py distill -i RNASPADES/D2/DRAMV/annotations.tsv -o RNASPADES/D2/DRAMV/DISTILL &&
+DRAM-v.py distill -i RNASPADES/D3/DRAMV/annotations.tsv -o RNASPADES/D3/DRAMV/DISTILL &&
+DRAM-v.py distill -i RNASPADES/D4/DRAMV/annotations.tsv -o RNASPADES/D4/DRAMV/DISTILL
+```
+#Manual curation was performed in R SEE R SCRIPT FOR CURATION
+#Following manual curation, cat all fastas and subset by list of curated phages from R
+
+####SED SCRIPTS FOR WEIRD DEFLINE ISSUE I WAS FACING
+```r
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/D1_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/D1_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/D2_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/D2_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/D3_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/D3_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/D4_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/D4_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/R1_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/R1_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/R2_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/R2_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/R3_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/R3_simp_combined.fa &&
+sed 's/||.*/||/' CURATED_DIEL_VIRUSES/ORIG_FASTA/R4_combined.fna > CURATED_DIEL_VIRUSES/ORIG_FASTA/R4_simp_combined.fa
+```
+
+```r
+#Overall
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/simp_cat_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+#Do per file
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/D1_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/D1_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/D1_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/D2_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/D2_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/D2_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/D3_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/D3_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/D3_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/D4_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/D4_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/D4_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/R1_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/R1_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/R1_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/R2_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/R2_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/R2_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/R3_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/R3_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/R3_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i CURATED_DIEL_VIRUSES/ORIG_FASTA/R4_simp_combined.fa -f fasta -p CURATED_DIEL_VIRUSES/R4_curated_viral.fa -n CURATED_DIEL_VIRUSES/ORIG_FASTA/R4_removed_viral.fa CURATED_DIEL_VIRUSES/curated_ids.tsv 1
+```
+#Next deduplicate at 95% identity using CD-HIT-EST
+###AMONG ALL ASSEMBLIES HERE##
+cd-hit-est -i CURATED_DIEL_VIRUSES/curated_viral.fa -o CURATED_DIEL_VIRUSES/dedup_curate_viral.fa -c 0.95
+
+#Now CLUSTER within coassembly
+#FOR DNA
+```r
+cd-hit-est -i CURATED_DIEL_VIRUSES/D1_curated_viral.fa -o CURATED_DIEL_VIRUSES/D1_dedup_curate_viral.fa -c 0.95 && ##None clustered
+cd-hit-est -i CURATED_DIEL_VIRUSES/D2_curated_viral.fa -o CURATED_DIEL_VIRUSES/D2_dedup_curate_viral.fa -c 0.95 && ##None clustered
+cd-hit-est -i CURATED_DIEL_VIRUSES/D3_curated_viral.fa -o CURATED_DIEL_VIRUSES/D3_dedup_curate_viral.fa -c 0.95 && ## One clustered
+cd-hit-est -i CURATED_DIEL_VIRUSES/D4_curated_viral.fa -o CURATED_DIEL_VIRUSES/D4_dedup_curate_viral.fa -c 0.95 && ##None clustered
+```
+#FOR RNA
+```r
+cd-hit-est -i CURATED_DIEL_VIRUSES/R1_curated_viral.fa -o CURATED_DIEL_VIRUSES/R1_dedup_curate_viral.fa -c 0.95 && ##8 clustered
+cd-hit-est -i CURATED_DIEL_VIRUSES/R2_curated_viral.fa -o CURATED_DIEL_VIRUSES/R2_dedup_curate_viral.fa -c 0.95 && ##14 clustered
+cd-hit-est -i CURATED_DIEL_VIRUSES/R3_curated_viral.fa -o CURATED_DIEL_VIRUSES/R3_dedup_curate_viral.fa -c 0.95 && ##6 clustered
+cd-hit-est -i CURATED_DIEL_VIRUSES/R4_curated_viral.fa -o CURATED_DIEL_VIRUSES/R4_dedup_curate_viral.fa -c 0.95 && ##2 clustered
+```
+#now that we have dereplicated at 95%, let's run through VIBRANT ver. 1.2.1
+#We will run through the Cyverse Environment because I can't get these databases to download.
+#Pull VIBRANT results from the webserver and integrate into supplementary table with (yes/no) validated
+
+#Use PhaGCN for taxonomy
+python run_Speed_up.py --contigs cat_dedup.fa --len 500
+
+#Also use vcontact2 for network building with known RefSeq phages
+#That means we need to generate the necessary files using Prodigal
+prodigal -i CURATED_DIEL_VIRUSES/cat_dedup.fa -o CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/cat_dedup.genes -a CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/cat_dedup.faa -p meta
+
+#Then create the gene_to_genome mapping file needed by vcontact
+vcontact2_gene2genome -p CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/cat_dedup.faa -o CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/g2g.csv -s 'Prodigal-FAA'
+
+#Now run vConTACT2 using Ref88
+vcontact2 -r CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/cat_dedup.faa -p CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/g2g.csv -o CURATED_DIEL_VIRUSES/VCONTACT/ --vcs-mode ClusterONE --c1-bin cluster_one-1.0.jar --db ProkaryoticViralRefSeq88-Merged -t 30 -vvv
+
+#Combining and visualization is all done in R scripts
+
+#Let's also explore similarity to GOV2 seawater dataset, https://datacommons.cyverse.org/browse/iplant/home/shared/iVirus/GOV2.0/GOV2_viral_populations_larger_than_5KB_or_circular.zip
+#and permafrost GenBank accession: GCA_003191745.1
+#so do another Vcontact run with this dataset, too, and no refseq
+#First we need to genrate AA file from permafrost
+prodigal -i CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/permafrost.fna -o CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/permafrost.genes -a CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/permafrost.faa -p meta
+
+#Then generate AA file from GOV
+prodigal -i CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/seawater.fna -o CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/seawater.genes -a CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/seawater.faa -p meta
+
+#Then concatenate my AA file with the GOV AA file and the Perm AA
+cat CURATED_DIEL_VIRUSES/VCONTACT/PRODIGAL/cat_dedup.faa CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/seawater.faa > CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/cat_mat_GOV.faa
+
+cat CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/cat_mat_GOV.faa CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/permafrost.faa > CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/cat_mat_GOV_perm.faa
+#Then create genome mapping file
+vcontact2_gene2genome -p CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/cat_mat_GOV_perm.faa -o CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/g2g.csv -s 'Prodigal-FAA'
+#Then runn vConTACT2
+vcontact2 -r CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/cat_mat_GOV_perm.faa -p CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/g2g.csv -o CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/ --vcs-mode ClusterONE --c1-bin cluster_one-1.0.jar --db None -t 30 -vvv
+#Failed at final network building because of RAM limitations, try reruning using the DIAMOND Protein cluster sheets as input and maybe use fewer threads to try and reduce memory requirements....i hope haha!
+vcontact2 -o CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/RUN2/ --vcs-mode ClusterONE --c1-bin cluster_one-1.0.jar --db None -t 15 -vvv --contigs CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/vConTACT_contigs.csv --pcs CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/vConTACT_pcs.csv --pc-profiles CURATED_DIEL_VIRUSES/SEAWATER_VCONTACT/vConTACT_profiles.csv
+
+#Run on UNC CLUSTER
+#First, set up the conda environment within an interactive shell
+###REMEMBER YOU NEED NUMPY 1.19.5 and PANDAS 0.25.3 or else this will fail halfway through and enrage you
+#############Create Script
+nano /proj/mccoylab/Diel/vcon/vcon_diel.sh
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --time=11-00:00:00
+#SBATCH --mem=720000
+#SBATCH --ntasks-per-node=36
+#SBATCH -o /proj/mccoylab/Diel/vcon/Diel_vcon.out
+
+module add anaconda/2021.11
+source activate vcon2
+export PYTHONPATH="/nas/longleaf/home/ecissell/.conda/envs/vcon2/"
+
+vcontact2 -o /proj/mccoylab/Diel/vcon/run_unc/ --vcs-mode ClusterONE --c1-bin /proj/mccoylab/Diel/SOFTWARE/cluster_one-1.0.jar --db None -t 36 -vvv --contigs /proj/mccoylab/Diel/vcon/vConTACT_contigs.csv --pcs /proj/mccoylab/Diel/vcon/vConTACT_pcs.csv --pc-profiles /proj/mccoylab/Diel/vcon/vConTACT_profiles.csv
+
+###RUN
+sbatch /proj/mccoylab/Diel/vcon/vcon_diel.sh
+
+###########Host prediction using multiple computational strategies
+#####
+#First CRISPR Matching
+#MINCED ver 0.4.2 for CRISPR spacer annotation on prok genomes to assign host-phage pairs
+```r
+mkdir MEGAHIT/D1/PHAGES/CRISPR &&
+mkdir MEGAHIT/D2/PHAGES/CRISPR &&
+mkdir MEGAHIT/D3/PHAGES/CRISPR &&
+mkdir MEGAHIT/D4/PHAGES/CRISPR &&
+cd MEGAHIT/D1/ANVIO/fasta &&
+for FILE in *.fa; do minced -spacers -gffFull $FILE ${FILE%%.fa}.gff ${FILE%%.fa}.txt; done &&
+cd &&
+cd MEGAHIT/D2/ANVIO/fasta &&
+for FILE in *.fa; do minced -spacers -gffFull $FILE ${FILE%%.fa}.gff ${FILE%%.fa}.txt; done &&
+cd &&
+cd MEGAHIT/D3/ANVIO/fasta &&
+for FILE in *.fa; do minced -spacers -gffFull $FILE ${FILE%%.fa}.gff ${FILE%%.fa}.txt; done &&
+cd &&
+cd MEGAHIT/D4/ANVIO/fasta &&
+for FILE in *.fa; do minced -spacers -gffFull $FILE ${FILE%%.fa}.gff ${FILE%%.fa}.txt; done &&
+cd &&
+mv MEGAHIT/D1/ANVIO/fasta/*_spacers.fa MEGAHIT/D1/PHAGES/CRISPR/ &&
+mv MEGAHIT/D1/ANVIO/fasta/*.txt MEGAHIT/D1/PHAGES/CRISPR/ &&
+mv MEGAHIT/D1/ANVIO/fasta/*.gff MEGAHIT/D1/PHAGES/CRISPR/ &&
+mv MEGAHIT/D2/ANVIO/fasta/*_spacers.fa MEGAHIT/D2/PHAGES/CRISPR/ &&
+mv MEGAHIT/D2/ANVIO/fasta/*.txt MEGAHIT/D2/PHAGES/CRISPR/ &&
+mv MEGAHIT/D2/ANVIO/fasta/*.gff MEGAHIT/D2/PHAGES/CRISPR/ &&
+mv MEGAHIT/D3/ANVIO/fasta/*_spacers.fa MEGAHIT/D3/PHAGES/CRISPR/ &&
+mv MEGAHIT/D3/ANVIO/fasta/*.txt MEGAHIT/D3/PHAGES/CRISPR/ &&
+mv MEGAHIT/D3/ANVIO/fasta/*.gff MEGAHIT/D3/PHAGES/CRISPR/ &&
+mv MEGAHIT/D4/ANVIO/fasta/*_spacers.fa MEGAHIT/D4/PHAGES/CRISPR/ &&
+mv MEGAHIT/D4/ANVIO/fasta/*.txt MEGAHIT/D4/PHAGES/CRISPR/ &&
+mv MEGAHIT/D4/ANVIO/fasta/*.gff MEGAHIT/D4/PHAGES/CRISPR/
+```
+#We need to append the MAG identity to the deflines of the spacer fasta before cat
+```r
+cd MEGAHIT/D1/PHAGES/CRISPR &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D1/>$b/" "$FILE"; done
+cd &&
+cd MEGAHIT/D2/PHAGES/CRISPR &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D2/>$b/" "$FILE"; done &&
+cd &&
+cd MEGAHIT/D3/PHAGES/CRISPR &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D3/>$b/" "$FILE"; done &&
+cd &&
+cd MEGAHIT/D4/PHAGES/CRISPR &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D4/>$b/" "$FILE"; done &&
+cd
+```
+#Now we cat
+```r
+cat MEGAHIT/D1/PHAGES/CRISPR/*.fa > MEGAHIT/D1/PHAGES/CRISPR/D1_spacers.fa &&
+cat MEGAHIT/D2/PHAGES/CRISPR/*.fa > MEGAHIT/D2/PHAGES/CRISPR/D2_spacers.fa &&
+cat MEGAHIT/D3/PHAGES/CRISPR/*.fa > MEGAHIT/D3/PHAGES/CRISPR/D3_spacers.fa &&
+cat MEGAHIT/D4/PHAGES/CRISPR/*.fa > MEGAHIT/D4/PHAGES/CRISPR/D4_spacers.fa
+```
+
+#Make blastdb for blasting phage contigs against crispr _spacers
+```r
+makeblastdb -in MEGAHIT/D1/PHAGES/CRISPR/D1_spacers.fa -parse_seqids -dbtype nucl -out MEGAHIT/D1/PHAGES/CRISPR/spacer.db
+```
+#Deflines are too long, we need to Simplify. Let's Remove D?_MAG_
+```r
+sed -i 's/D1_MAG_//' MEGAHIT/D1/PHAGES/CRISPR/D1_spacers.fa &&
+sed -i 's/D2_MAG_//' MEGAHIT/D2/PHAGES/CRISPR/D2_spacers.fa &&
+sed -i 's/D3_MAG_//' MEGAHIT/D3/PHAGES/CRISPR/D3_spacers.fa &&
+sed -i 's/D4_MAG_//' MEGAHIT/D4/PHAGES/CRISPR/D4_spacers.fa
+```
+#Now make those DB
+```r
+makeblastdb -in MEGAHIT/D1/PHAGES/CRISPR/D1_spacers.fa -parse_seqids -dbtype nucl -out MEGAHIT/D1/PHAGES/CRISPR/spacer.db &&
+makeblastdb -in MEGAHIT/D2/PHAGES/CRISPR/D2_spacers.fa -parse_seqids -dbtype nucl -out MEGAHIT/D2/PHAGES/CRISPR/spacer.db &&
+makeblastdb -in MEGAHIT/D3/PHAGES/CRISPR/D3_spacers.fa -parse_seqids -dbtype nucl -out MEGAHIT/D3/PHAGES/CRISPR/spacer.db &&
+makeblastdb -in MEGAHIT/D4/PHAGES/CRISPR/D4_spacers.fa -parse_seqids -dbtype nucl -out MEGAHIT/D4/PHAGES/CRISPR/spacer.db
+```
+#Time to blast
+```r
+blastn -db MEGAHIT/D1/PHAGES/CRISPR/spacer.db -query CURATED_DIEL_VIRUSES/CRISPR/DR1_cat_dedup.fa -out CURATED_DIEL_VIRUSES/CRISPR/DR1_blast_spacer.txt -outfmt 6 -word_size 7 -task blastn-short -gapopen 10 -gapextend 2 -penalty -1 -max_target_seqs 5 &&
+blastn -db MEGAHIT/D2/PHAGES/CRISPR/spacer.db -query CURATED_DIEL_VIRUSES/CRISPR/DR2_cat_dedup.fa -out CURATED_DIEL_VIRUSES/CRISPR/DR2_blast_spacer.txt -outfmt 6 -word_size 7 -task blastn-short -gapopen 10 -gapextend 2 -penalty -1 -max_target_seqs 5 &&
+blastn -db MEGAHIT/D3/PHAGES/CRISPR/spacer.db -query CURATED_DIEL_VIRUSES/CRISPR/DR3_cat_dedup.fa -out CURATED_DIEL_VIRUSES/CRISPR/DR3_blast_spacer.txt -outfmt 6 -word_size 7 -task blastn-short -gapopen 10 -gapextend 2 -penalty -1 -max_target_seqs 5 &&
+blastn -db MEGAHIT/D4/PHAGES/CRISPR/spacer.db -query CURATED_DIEL_VIRUSES/CRISPR/DR4_cat_dedup.fa -out CURATED_DIEL_VIRUSES/CRISPR/DR4_blast_spacer.txt -outfmt 6 -word_size 7 -task blastn-short -gapopen 10 -gapextend 2 -penalty -1 -max_target_seqs 5
+```
+####SECOND PHIST (k-mer or oligonucleotide based)
+#Use PHIST to also ID virus-host pairs; it requires the viruses to each be separate fastas; time to split
+#cd into dierctory then,
+#1:first step to spilt into each file
+cat *.fa |\
+awk '/^>/ {if(N>0) printf("\n"); printf("%s\n",$0);++N;next;} { printf("%s",$0);} END {printf("\n");}' |\
+split -l 2  - OTU
+#2:second step to add extension
+for file in OTU*
+do
+ mv "$file" "$file.fasta"
+done
+#3:third step to change the file name to the header name
+for i in *.fasta; do
+mv $i $(head -1 $i | cut -f1 -d ' ' | tr -d '>' ).fasta
+done
+
+#Change files in genomes to have fasta extension
+#cd into directory
+for FILE in *.fa
+do
+mv -- "$FILE" "${FILE%.fa}.fasta"
+done
+
+#Now we use PHIST
+```r
+python3 PHIST/phist.py -t 20 CURATED_DIEL_VIRUSES/VIRHOSTFINDER/D1/ MEGAHIT/D1/ANVIO/fasta/FASTA CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD1/common_kmers.csv CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD1/predictions.csv &&
+python3 PHIST/phist.py -t 20 CURATED_DIEL_VIRUSES/VIRHOSTFINDER/D2/ MEGAHIT/D2/ANVIO/fasta/FASTA CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD2/common_kmers.csv CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD2/predictions.csv &&
+python3 PHIST/phist.py -t 20 CURATED_DIEL_VIRUSES/VIRHOSTFINDER/D3/ MEGAHIT/D3/ANVIO/fasta/FASTA CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD3/common_kmers.csv CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD3/predictions.csv &&
+python3 PHIST/phist.py -t 20 CURATED_DIEL_VIRUSES/VIRHOSTFINDER/D4/ MEGAHIT/D4/ANVIO/fasta/FASTA CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD4/common_kmers.csv CURATED_DIEL_VIRUSES/VIRHOSTFINDER/RESD4/predictions.csv
+```
+
+##########
+#Finally use BLASTn to get raw nucleotide identity matches for 3rd phage-host match data
+#First make blastdb of viral contigs
+
+makeblastdb -in CURATED_DIEL_VIRUSES/CRISPR/DR1_cat_dedup.fa -parse_seqids -dbtype nucl -out CURATED_DIEL_VIRUSES/BLAST/D1/phages.db &&
+makeblastdb -in CURATED_DIEL_VIRUSES/CRISPR/DR2_cat_dedup.fa -parse_seqids -dbtype nucl -out CURATED_DIEL_VIRUSES/BLAST/D2/phages.db &&
+makeblastdb -in CURATED_DIEL_VIRUSES/CRISPR/DR3_cat_dedup.fa -parse_seqids -dbtype nucl -out CURATED_DIEL_VIRUSES/BLAST/D3/phages.db &&
+makeblastdb -in CURATED_DIEL_VIRUSES/CRISPR/DR4_cat_dedup.fa -parse_seqids -dbtype nucl -out CURATED_DIEL_VIRUSES/BLAST/D4/phages.db
+
+#We need to append the MAG identity to the deflines of the MAGs and then cat
+```r
+cd CAT/D1 &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D1/>$b/" "$FILE"; done
+cd &&
+cd CAT/D2 &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D2/>$b/" "$FILE"; done &&
+cd &&
+cd CAT/D3 &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D3/>$b/" "$FILE"; done &&
+cd &&
+cd CAT/D4 &&
+for FILE in *.fa; do
+b="${FILE%.fa}"
+sed -i "s/>D4/>$b/" "$FILE"; done &&
+cd
+
+cat CAT/D1/*.fa>CAT/D1/D1_MAGs.fa &&
+cat CAT/D2/*.fa>CAT/D2/D2_MAGs.fa &&
+cat CAT/D3/*.fa>CAT/D3/D3_MAGs.fa &&
+cat CAT/D4/*.fa>CAT/D4/D4_MAGs.fa
+```
+#Then, blast MAGs against viral contigs
+```r
+blastn -db CURATED_DIEL_VIRUSES/BLAST/D1/phages.db -query CAT/D1/D1_MAGs.fa -out CURATED_DIEL_VIRUSES/BLAST/D1/D1_blast_nt_id.txt -perc_identity 75 -evalue 0.001 -num_threads 10 -max_target_seqs 5 -outfmt 6 &&
+blastn -db CURATED_DIEL_VIRUSES/BLAST/D2/phages.db -query CAT/D2/D2_MAGs.fa -out CURATED_DIEL_VIRUSES/BLAST/D2/D2_blast_nt_id.txt -perc_identity 75 -evalue 0.001 -num_threads 10 -max_target_seqs 5 -outfmt 6 &&
+blastn -db CURATED_DIEL_VIRUSES/BLAST/D3/phages.db -query CAT/D3/D3_MAGs.fa -out CURATED_DIEL_VIRUSES/BLAST/D3/D3_blast_nt_id.txt -perc_identity 75 -evalue 0.001 -num_threads 10 -max_target_seqs 5 -outfmt 6 &&
+blastn -db CURATED_DIEL_VIRUSES/BLAST/D4/phages.db -query CAT/D4/D4_MAGs.fa -out CURATED_DIEL_VIRUSES/BLAST/D4/D4_blast_nt_id.txt -perc_identity 75 -evalue 0.001 -num_threads 10 -max_target_seqs 5 -outfmt 6
+```
+
+#Integrate results in R scripts
+
+
+#####Extract abundance and expression profiles
+#Map DNA to DNA viruses
+#Build bowtie index of phage genomes
+```r
+bowtie2-build CURATED_DIEL_VIRUSES/D1_dedup_curate_viral.fa CURATED_DIEL_VIRUSES/BOWTIE/Virus/D1_phage -f &&
+bowtie2-build CURATED_DIEL_VIRUSES/D2_dedup_curate_viral.fa CURATED_DIEL_VIRUSES/BOWTIE/Virus/D2_phage -f &&
+bowtie2-build CURATED_DIEL_VIRUSES/D3_dedup_curate_viral.fa CURATED_DIEL_VIRUSES/BOWTIE/Virus/D3_phage -f &&
+bowtie2-build CURATED_DIEL_VIRUSES/D4_dedup_curate_viral.fa CURATED_DIEL_VIRUSES/BOWTIE/Virus/D4_phage -f
+```
+#Map DNA against Phages
+```r
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D1_phage -1 Diel/DNA/raw_data/D1_1/D1_1_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D1_1/D1_1_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_1_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D1_phage -1 Diel/DNA/raw_data/D1_3/D1_3_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D1_3/D1_3_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_3_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D1_phage -1 Diel/DNA/raw_data/D1_5/D1_5_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D1_5/D1_5_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_5_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D2_phage -1 Diel/DNA/raw_data/D2_1/D2_1_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D2_1/D2_1_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_1_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D2_phage -1 Diel/DNA/raw_data/D2_3/D2_3_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D2_3/D2_3_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_3_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D2_phage -1 Diel/DNA/raw_data/D2_5/D2_5_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D2_5/D2_5_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_5_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D3_phage -1 Diel/DNA/raw_data/D3_1/D3_1_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D3_1/D3_1_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_1_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D3_phage -1 Diel/DNA/raw_data/D3_3/D3_3_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D3_3/D3_3_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_3_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D3_phage -1 Diel/DNA/raw_data/D3_5/D3_5_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D3_5/D3_5_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_5_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D4_phage -1 Diel/DNA/raw_data/D4_1/D4_1_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D4_1/D4_1_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_1_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D4_phage -1 Diel/DNA/raw_data/D4_3/D4_3_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D4_3/D4_3_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_3_sort_phage.bam -p 32 &&
+bowtie2 -x CURATED_DIEL_VIRUSES/BOWTIE/Virus/D4_phage -1 Diel/DNA/raw_data/D4_5/D4_5_1_fin_qc.fq.gz -2 Diel/DNA/raw_data/D4_5/D4_5_2_fin_qc.fq.gz -S CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_phage.sam -p 32 --no-unal &&
+samtools view -S -b CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_phage.sam > CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_phage.bam -@ 32 &&
+samtools sort CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_phage.bam -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_sort_phage.bam -@ 32 &&
+samtools index CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_sort_phage.bam -@ 32 &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_phage.sam &&
+rm CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_phage.bam &&
+pigz CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_5_sort_phage.bam -p 32
+```
+
+#Coverm for genome abundances (TPM)
+
+coverm genome --bam-files MEGAHIT/D1/DNA_MAPS/D1_?_sort_mag.bam --genome-fasta-directory MEGAHIT/D1/ANVIO/fasta/ -x fa -m count,length -t 5 -o MEGAHIT/D1/DNA_MAPS/genome_tpm.tsv &&
+coverm genome --bam-files MEGAHIT/D2/DNA_MAPS/D2_?_sort_mag.bam --genome-fasta-directory MEGAHIT/D2/ANVIO/fasta/ -x fa -m count,length -t 5 -o MEGAHIT/D2/DNA_MAPS/genome_tpm.tsv &&
+coverm genome --bam-files MEGAHIT/D3/DNA_MAPS/D3_?_sort_mag.bam --genome-fasta-directory MEGAHIT/D3/ANVIO/fasta/ -x fa -m count,length -t 5 -o MEGAHIT/D3/DNA_MAPS/genome_tpm.tsv &&
+coverm genome --bam-files MEGAHIT/D4/DNA_MAPS/D4_?_sort_mag.bam --genome-fasta-directory MEGAHIT/D4/ANVIO/fasta/ -x fa -m count,length -t 5 -o MEGAHIT/D4/DNA_MAPS/genome_tpm.tsv
+
+#Coverm for phage abundances (TPM)
+
+#Count
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_?_sort_phage.bam -m count -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D1_phage_counts.tsv &&
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_?_sort_phage.bam -m count -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D2_phage_counts.tsv &&
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_?_sort_phage.bam -m count -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D3_phage_counts.tsv &&
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_?_sort_phage.bam -m count -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D4_phage_counts.tsv
+
+#Length
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D1_?_sort_phage.bam -m length -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D1_phage_length.tsv &&
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D2_?_sort_phage.bam -m length -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D2_phage_length.tsv &&
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D3_?_sort_phage.bam -m length -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D3_phage_length.tsv &&
+coverm contig --bam-files CURATED_DIEL_VIRUSES/BOWTIE/Virus/DNA_MAPS/D4_?_sort_phage.bam -m length -t 5 -o CURATED_DIEL_VIRUSES/BOWTIE/Virus/D4_phage_length.tsv
+
+
+#######BEFORE DOING RNA WORK, NEED TO FIX MISSING DRAM annotations
+#First, create list of those that made it through
+#Do this for each mat
+#D1
+grep -e "^>" VIRSORTER2/DIEL/D1/vs_pass_2/final-viral-combined.fa > dif_list_d1.tsv
+awk 'sub(/^>/, "")' dif_list_d1.tsv > dif_list_d1.txt
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i VIRSORTER2/DIEL/D1/checkv/combined.fna -f fasta -p VIRSORTER2/DIEL/D1/DIFF_DRAM/fine.fa -n VIRSORTER2/DIEL/D1/DIFF_DRAM/needed.fa VIRSORTER2/DIEL/D1/DIFF_DRAM/dif_list_both.tsv 1
+
+#D2
+grep -e "^>" VIRSORTER2/DIEL/D2/vs_pass_2/final-viral-combined.fa > VIRSORTER2/DIEL/D2/dif_list_d2.tsv &&
+awk 'sub(/^>/, "")' VIRSORTER2/DIEL/D2/dif_list_d2.tsv > VIRSORTER2/DIEL/D2/dif_list_d2.txt &&
+mkdir VIRSORTER2/DIEL/D2/DIFF_DRAM &&
+mv VIRSORTER2/DIEL/D2/dif_list_d2.txt VIRSORTER2/DIEL/D2/DIFF_DRAM/dif_list_both.tsv &&
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i VIRSORTER2/DIEL/D2/checkv/combined.fna -f fasta -p VIRSORTER2/DIEL/D2/DIFF_DRAM/fine.fa -n VIRSORTER2/DIEL/D2/DIFF_DRAM/needed.fa VIRSORTER2/DIEL/D2/DIFF_DRAM/dif_list_both.tsv 1
+
+#D3
+grep -e "^>" VIRSORTER2/DIEL/D3/vs_pass_2/final-viral-combined.fa > VIRSORTER2/DIEL/D3/dif_list_d3.tsv &&
+awk 'sub(/^>/, "")' VIRSORTER2/DIEL/D3/dif_list_d3.tsv > VIRSORTER2/DIEL/D3/dif_list_d3.txt &&
+mkdir VIRSORTER2/DIEL/D3/DIFF_DRAM &&
+mv VIRSORTER2/DIEL/D3/dif_list_d3.txt VIRSORTER2/DIEL/D3/DIFF_DRAM/dif_list_both.tsv &&
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i VIRSORTER2/DIEL/D3/checkv/combined.fna -f fasta -p VIRSORTER2/DIEL/D3/DIFF_DRAM/fine.fa -n VIRSORTER2/DIEL/D3/DIFF_DRAM/needed.fa VIRSORTER2/DIEL/D3/DIFF_DRAM/dif_list_both.tsv 1
+
+#D4
+grep -e "^>" VIRSORTER2/DIEL/D4/vs_pass_2/final-viral-combined.fa > VIRSORTER2/DIEL/D4/dif_list_d4.tsv &&
+awk 'sub(/^>/, "")' VIRSORTER2/DIEL/D4/dif_list_d4.tsv > VIRSORTER2/DIEL/D4/dif_list_d4.txt &&
+mkdir VIRSORTER2/DIEL/D4/DIFF_DRAM &&
+mv VIRSORTER2/DIEL/D4/dif_list_d4.txt VIRSORTER2/DIEL/D4/DIFF_DRAM/dif_list_both.tsv &&
+python seq_filter_by_id/tools/seq_filter_by_id/seq_filter_by_id.py -i VIRSORTER2/DIEL/D4/checkv/combined.fna -f fasta -p VIRSORTER2/DIEL/D4/DIFF_DRAM/fine.fa -n VIRSORTER2/DIEL/D4/DIFF_DRAM/needed.fa VIRSORTER2/DIEL/D4/DIFF_DRAM/dif_list_both.tsv 1
+
+#Then prep for DRAMv with Vir
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D4/DIFF_DRAM/needed.fa -w VIRSORTER2/DIEL/D4/DIFF_DRAM/vs_pass3 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 1 --min-score 0 -j 28 --keep-original-seq all
+
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D3/DIFF_DRAM/needed.fa -w VIRSORTER2/DIEL/D3/DIFF_DRAM/vs_pass3 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 1 --min-score 0 -j 28 --keep-original-seq all
+
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D2/DIFF_DRAM/needed.fa -w VIRSORTER2/DIEL/D2/DIFF_DRAM/vs_pass3 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 1 --min-score 0 -j 28 --keep-original-seq all
+
+virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i VIRSORTER2/DIEL/D1/DIFF_DRAM/needed.fa -w VIRSORTER2/DIEL/D1/DIFF_DRAM/vs_pass3 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 1 --min-score 0 -j 28 --keep-original-seq all
+
+#Then DRAM it up
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D1/DIFF_DRAM/vs_pass3/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D1/DIFF_DRAM/vs_pass3/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D1/DIFF_DRAM/DRAMV --skip_trnascan --threads 28 --min_contig_size 1
+
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D2/DIFF_DRAM/vs_pass3/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D2/DIFF_DRAM/vs_pass3/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D2/DIFF_DRAM/DRAMV --skip_trnascan --threads 28 --min_contig_size 1
+
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D3/DIFF_DRAM/vs_pass3/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D3/DIFF_DRAM/vs_pass3/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D3/DIFF_DRAM/DRAMV --skip_trnascan --threads 28 --min_contig_size 1
+
+DRAM-v.py annotate -i VIRSORTER2/DIEL/D4/DIFF_DRAM/vs_pass3/for-dramv/final-viral-combined-for-dramv.fa -v VIRSORTER2/DIEL/D4/DIFF_DRAM/vs_pass3/for-dramv/viral-affi-contigs-for-dramv.tab -o VIRSORTER2/DIEL/D4/DIFF_DRAM/DRAMV --skip_trnascan --threads 28 --min_contig_size 1
+
+
+#Now cat together those dram
+cat VIRSORTER2/DIEL/D1/DIFF_DRAM/DRAMV/scaffolds.fna VIRSORTER2/DIEL/D1/DRAMV/scaffolds.fna > VIRSORTER2/DIEL/D1/RNA_MAPS/dram_combined.fna
+cat VIRSORTER2/DIEL/D2/DIFF_DRAM/DRAMV/scaffolds.fna VIRSORTER2/DIEL/D2/DRAMV/scaffolds.fna > VIRSORTER2/DIEL/D2/RNA_MAPS/dram_combined.fna
+cat VIRSORTER2/DIEL/D3/DIFF_DRAM/DRAMV/scaffolds.fna VIRSORTER2/DIEL/D3/DRAMV/scaffolds.fna > VIRSORTER2/DIEL/D3/RNA_MAPS/dram_combined.fna
+cat VIRSORTER2/DIEL/D4/DIFF_DRAM/DRAMV/scaffolds.fna VIRSORTER2/DIEL/D4/DRAMV/scaffolds.fna > VIRSORTER2/DIEL/D4/RNA_MAPS/dram_combined.fna
+
+#Build BWA index of phages from DRAM scaffolds
+bwa index -p VIRSORTER2/DIEL/D1/RNA_MAPS/D1_phages VIRSORTER2/DIEL/D1/RNA_MAPS/dram_combined.fna &&
+bwa index -p VIRSORTER2/DIEL/D2/RNA_MAPS/D2_phages VIRSORTER2/DIEL/D2/RNA_MAPS/dram_combined.fna &&
+bwa index -p VIRSORTER2/DIEL/D3/RNA_MAPS/D3_phages VIRSORTER2/DIEL/D3/RNA_MAPS/dram_combined.fna &&
+bwa index -p VIRSORTER2/DIEL/D4/RNA_MAPS/D4_phages VIRSORTER2/DIEL/D4/RNA_MAPS/dram_combined.fna
+
+#BWA align RNA against DRAM scaffolds MAGS
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R1_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/D1_phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R2_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/D2_phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R3_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/D3_phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R4_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/D4_phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+#CAT together the GFF file for featureCounts
+cat VIRSORTER2/DIEL/D1/DIFF_DRAM/DRAMV/genes.gff VIRSORTER2/DIEL/D1/DRAMV/genes.gff > VIRSORTER2/DIEL/D1/RNA_MAPS/genes_combined.gff
+cat VIRSORTER2/DIEL/D2/DIFF_DRAM/DRAMV/genes.gff VIRSORTER2/DIEL/D2/DRAMV/genes.gff > VIRSORTER2/DIEL/D2/RNA_MAPS/genes_combined.gff
+cat VIRSORTER2/DIEL/D3/DIFF_DRAM/DRAMV/genes.gff VIRSORTER2/DIEL/D3/DRAMV/genes.gff > VIRSORTER2/DIEL/D3/RNA_MAPS/genes_combined.gff
+cat VIRSORTER2/DIEL/D4/DIFF_DRAM/DRAMV/genes.gff VIRSORTER2/DIEL/D4/DRAMV/genes.gff > VIRSORTER2/DIEL/D4/RNA_MAPS/genes_combined.gff
+
+
+#We will be usign the MAG RNA data previously done in the Diel workflow
+#Use featureCounts to extract RNA counts per gene region on phages
+featureCounts -a VIRSORTER2/DIEL/D1/RNA_MAPS/genes_combined.gff -o VIRSORTER2/DIEL/D1/RNA_MAPS/D1_RNA_phages_counts.tsv /home/mccoylab/VIRSORTER2/DIEL/D1/RNA_MAPS/R1_?_sort.bam -T 20 -F GFF -t CDS -g ID -p &&
+featureCounts -a VIRSORTER2/DIEL/D2/RNA_MAPS/genes_combined.gff -o VIRSORTER2/DIEL/D2/RNA_MAPS/D2_RNA_phages_counts.tsv /home/mccoylab/VIRSORTER2/DIEL/D2/RNA_MAPS/R2_?_sort.bam -T 20 -F GFF -t CDS -g ID -p &&
+featureCounts -a VIRSORTER2/DIEL/D3/RNA_MAPS/genes_combined.gff -o VIRSORTER2/DIEL/D3/RNA_MAPS/D3_RNA_phages_counts.tsv /home/mccoylab/VIRSORTER2/DIEL/D3/RNA_MAPS/R3_?_sort.bam -T 20 -F GFF -t CDS -g ID -p &&
+featureCounts -a VIRSORTER2/DIEL/D4/RNA_MAPS/genes_combined.gff -o VIRSORTER2/DIEL/D4/RNA_MAPS/D4_RNA_phages_counts.tsv /home/mccoylab/VIRSORTER2/DIEL/D4/RNA_MAPS/R4_?_sort.bam -T 20 -F GFF -t CDS -g ID -p
+
+#Concatenate annotations
+cat VIRSORTER2/DIEL/D1/DIFF_DRAM/DRAMV/annotations.tsv VIRSORTER2/DIEL/D1/DRAMV/annotations.tsv > VIRSORTER2/DIEL/D1/RNA_MAPS/anno_combined.tsv
+cat VIRSORTER2/DIEL/D2/DIFF_DRAM/DRAMV/annotations.tsv VIRSORTER2/DIEL/D2/DRAMV/annotations.tsv > VIRSORTER2/DIEL/D2/RNA_MAPS/anno_combined.tsv
+cat VIRSORTER2/DIEL/D3/DIFF_DRAM/DRAMV/annotations.tsv VIRSORTER2/DIEL/D3/DRAMV/annotations.tsv > VIRSORTER2/DIEL/D3/RNA_MAPS/anno_combined.tsv
+cat VIRSORTER2/DIEL/D4/DIFF_DRAM/DRAMV/annotations.tsv VIRSORTER2/DIEL/D4/DRAMV/annotations.tsv > VIRSORTER2/DIEL/D4/RNA_MAPS/anno_combined.tsv
+
+#Create Distillate for removing AMG from VMAR Calculate
+DRAM-v.py distill -i VIRSORTER2/DIEL/D1/DIFF_DRAM/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D1/DIFF_DRAM/DISTILL &&
+DRAM-v.py distill -i VIRSORTER2/DIEL/D2/DIFF_DRAM/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D2/DIFF_DRAM/DISTILL &&
+DRAM-v.py distill -i VIRSORTER2/DIEL/D3/DIFF_DRAM/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D3/DIFF_DRAM/DISTILL &&
+DRAM-v.py distill -i VIRSORTER2/DIEL/D4/DIFF_DRAM/DRAMV/annotations.tsv -o VIRSORTER2/DIEL/D4/DIFF_DRAM/DISTILL
+
+
+##Map RNA against curated RNA viruses to get *abundance*
+#Build BWA index of phages from DRAM scaffolds
+bwa index -p CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R1_Phages CURATED_DIEL_VIRUSES/R1_dedup_curate_viral.fa &&
+bwa index -p CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R2_Phages CURATED_DIEL_VIRUSES/R2_dedup_curate_viral.fa &&
+bwa index -p CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R3_Phages CURATED_DIEL_VIRUSES/R3_dedup_curate_viral.fa &&
+bwa index -p CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R4_Phages CURATED_DIEL_VIRUSES/R4_dedup_curate_viral.fa
+
+
+#BWA align RNA against DRAM scaffolds MAGS
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R1_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R1_Phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R2_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R2_Phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R3_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R3_Phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+cd Diel/RNA/raw_data/RNA_Combined
+for i in R4_?_cleaned_fwd.fq.gz
+do
+echo $i
+echo ${i%_fwd.fq.gz}_rev.fq.gz
+bwa mem -t 36 /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R4_Phages $i ${i%_fwd.fq.gz}_rev.fq.gz | samtools view -@ 36 -S -b -F 4 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam &&
+samtools sort /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+samtools index /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -@ 32
+rm /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}.bam
+pigz /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/${i%_cleaned_fwd.fq.gz}_sort.bam -p 32
+done
+
+#Coverm for RNA phage abundances (TPM)
+
+#Count
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R1_?_sort.bam -m count -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R1_phage_counts.tsv &&
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R2_?_sort.bam -m count -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R2_phage_counts.tsv &&
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R3_?_sort.bam -m count -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R3_phage_counts.tsv &&
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R4_?_sort.bam -m count -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R4_phage_counts.tsv
+
+#Length
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R1_?_sort.bam -m length -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R1_phage_length.tsv &&
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R2_?_sort.bam -m length -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R2_phage_length.tsv &&
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R3_?_sort.bam -m length -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R3_phage_length.tsv &&
+coverm contig --bam-files /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R4_?_sort.bam -m length -t 5 -o /home/mccoylab/CURATED_DIEL_VIRUSES/RNA_PHAGE_ABUND_MAP/R4_phage_length.tsv
