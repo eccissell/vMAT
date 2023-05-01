@@ -11,5 +11,5 @@ Code files include:
 
 Data files include:
 
-- Datset S1 which provides descriptive information for every recovered viral vOTU in the vMAT database (.csv)
--
+- Datset S1 which provides descriptive information for every recovered viral vOTU in the vMAT database (.tsv)
+- Sequence files for all viral sequences in the vMAT database (.fa and .faa)
