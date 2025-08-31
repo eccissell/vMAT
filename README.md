@@ -1,8 +1,8 @@
 # vMAT <a href="https://zenodo.org/badge/latestdoi/482578885"><img src="https://zenodo.org/badge/482578885.svg" alt="DOI"></a>
-Code and data files for the analysis of the coral reef cyanobacterial mat virome (vMAT database) presented in  Cissell and McCoy In Review: Top-heavy trophic structure within benthic viral dark matter (Preprint Available Here: https://www.biorxiv.org/content/10.1101/2022.10.01.510451v1). The vMAT database is provided in both .fa and .faa (from Prodigal -p meta) formats.
+Code and data files for the analysis of the coral reef cyanobacterial mat virome (including the complete vMAT database) presented in  Cissell and McCoy (2023) Top-heavy trophic structure within benthic viral dark matter. Environmental Microbiology, 25(11), 2303-2320. Available from: https://doi.org/10.1111/1462-2920.16457. 
 
+The vMAT database is provided in both .fa and .faa (from Prodigal -p meta) formats.
 
-Data are currently provided as private for peer review only. Please email Ethan (ecissell@unc.edu) for permissions to use data and/or code prior to acceptance of the manuscripts for publication.
 
 Code files include:
 
